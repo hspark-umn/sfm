@@ -1,0 +1,3 @@
+/home/hspark/sfm_github/Matching_sift/build/CMakeFiles/edit_cache.dir
+/home/hspark/sfm_github/Matching_sift/build/CMakeFiles/rebuild_cache.dir
+/home/hspark/sfm_github/Matching_sift/build/CMakeFiles/Matching_sift.dir
