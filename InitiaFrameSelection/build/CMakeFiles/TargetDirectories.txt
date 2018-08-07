@@ -1,0 +1,3 @@
+/home/hspark/sfm_github/InitiaFrameSelection/build/CMakeFiles/edit_cache.dir
+/home/hspark/sfm_github/InitiaFrameSelection/build/CMakeFiles/rebuild_cache.dir
+/home/hspark/sfm_github/InitiaFrameSelection/build/CMakeFiles/InitialFrameSelection.dir
