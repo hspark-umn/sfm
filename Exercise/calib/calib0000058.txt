@@ -1,0 +1,8 @@
+ImageWidth: 1280
+ImageHeight: 1024
+FocalLengthX: 800.53624
+FocalLengthY: 800.29465
+PrincipalPointX: 630.85642	
+PrincipalPointY: 513.54272 
+k1: -0.40440
+k2: 0.20813
