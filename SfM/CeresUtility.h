@@ -628,6 +628,9 @@ void CeresSolverGoPro3(vector<Feature> &vFeature, vector<int> vUsedFrame, vector
 void CeresSolverGoPro2(vector<Feature> &vFeature, vector<int> vUsedFrame, vector<CvMat *> &cP, CvMat *X, vector<Camera> vCamera,
 	double omega);
 
+void CeresSolverGoPro(vector<Feature> &vFeature, vector<int> vUsedFrame, vector<CvMat *> &cP, CvMat *X, CvMat *K,
+	double omega);
+
 void GetParameterForSBA_Distortion(vector<Feature> &vFeature, vector<int> vUsedFrame, vector<CvMat *> cP, CvMat *X, CvMat *K, vector<int> visibleStructureID, BALProblem &bal_problem);
 void CreateCameraMatrix1(CvMat *R, CvMat *C, CvMat *K, CvMat *P);
 #endif //CERESUTILITY_H

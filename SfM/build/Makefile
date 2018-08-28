@@ -204,6 +204,33 @@ MathUtility.cpp.s:
 	$(MAKE) -f CMakeFiles/SfM.dir/build.make CMakeFiles/SfM.dir/MathUtility.cpp.s
 .PHONY : MathUtility.cpp.s
 
+MultiviewUtility.o: MultiviewUtility.cpp.o
+
+.PHONY : MultiviewUtility.o
+
+# target to build an object file
+MultiviewUtility.cpp.o:
+	$(MAKE) -f CMakeFiles/SfM.dir/build.make CMakeFiles/SfM.dir/MultiviewUtility.cpp.o
+.PHONY : MultiviewUtility.cpp.o
+
+MultiviewUtility.i: MultiviewUtility.cpp.i
+
+.PHONY : MultiviewUtility.i
+
+# target to preprocess a source file
+MultiviewUtility.cpp.i:
+	$(MAKE) -f CMakeFiles/SfM.dir/build.make CMakeFiles/SfM.dir/MultiviewUtility.cpp.i
+.PHONY : MultiviewUtility.cpp.i
+
+MultiviewUtility.s: MultiviewUtility.cpp.s
+
+.PHONY : MultiviewUtility.s
+
+# target to generate assembly for a file
+MultiviewUtility.cpp.s:
+	$(MAKE) -f CMakeFiles/SfM.dir/build.make CMakeFiles/SfM.dir/MultiviewUtility.cpp.s
+.PHONY : MultiviewUtility.cpp.s
+
 SfM.o: SfM.cpp.o
 
 .PHONY : SfM.o
@@ -276,6 +303,9 @@ help:
 	@echo "... MathUtility.o"
 	@echo "... MathUtility.i"
 	@echo "... MathUtility.s"
+	@echo "... MultiviewUtility.o"
+	@echo "... MultiviewUtility.i"
+	@echo "... MultiviewUtility.s"
 	@echo "... SfM.o"
 	@echo "... SfM.i"
 	@echo "... SfM.s"

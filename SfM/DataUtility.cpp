@@ -1,5 +1,57 @@
 #include "DataUtility.h"
 
+void LoadCorrespondenceData(string filename, vector<Feature> &vFeature)
+{
+	PrintAlgorithm("Load Correspondence Data");
+	cout << "File name: " << filename << endl;
+	ifstream file;
+	string a;
+	file.open(filename.c_str(), ifstream::in);
+	int nCameras, nFeatures;
+	file >> a >> a;
+	file >> a >> a;
+	file >> a >> nFeatures;
+
+	for (int j = 0; j < nFeatures; j++)
+	{
+		int nVisibleFrame;
+		int id;
+		double r, g, b;
+		file >> nVisibleFrame >> id;
+		file >> r >> g >> b;
+		Feature feature;
+		vector<int> vFrame, vCam, vFrame0;
+		vector<double> vx, vy, vx0, vy0, vx_dis, vy_dis;
+		double x, y, dis_x, dis_y;
+
+		for (int i = 0; i < nVisibleFrame; i++)
+		{
+			int frame, cam;
+			file >> cam >> frame;
+			file >> x >> y >> dis_x >> dis_y;
+
+			vFrame.push_back(frame);
+			vx.push_back(x);			vy.push_back(y);
+			vx_dis.push_back(dis_x);	vy_dis.push_back(dis_y);
+		}
+		if (vFrame.size() <= 2)
+			continue;
+		feature.id = vFeature.size();
+		feature.r = r;
+		feature.g = g;
+		feature.b = b;
+		feature.vFrame = vFrame;
+		feature.vx = vx;
+		feature.vy = vy;
+		feature.vx_dis = vx_dis;
+		feature.vy_dis = vy_dis;
+		feature.isRegistered = false;
+
+		vFeature.push_back(feature);
+	}
+	file.close();
+}
+
 void SaveVector(string filename, vector<double> v)
 {
 	cout << "File name: " << filename << endl;
@@ -3429,6 +3481,55 @@ void SaveCameraData_KRT(string filename, vector<CvMat*> cP, vector<Camera> vCame
 	fout.close();
 }
 
+void SaveCameraData(string filename, vector<CvMat*> cP, CvMat *K, vector<int> vUsedFrame)
+{
+	PrintAlgorithm("Save Camera Data");
+	cout << "File name: " << filename << endl;
+	ofstream fout;
+	fout.open(filename.c_str());
+	fout << "NumCams 1" << endl;
+	fout << "NumFrames " << cP.size() << endl;
+	fout << "NumP " << cP.size() << endl;
+
+	for (int i = 0; i < cP.size(); i++)
+	{
+		int frame = vUsedFrame[i];
+		int cam = 0;
+
+		CvMat *R = cvCreateMat(3, 3, CV_32FC1);
+		CvMat *t = cvCreateMat(3, 1, CV_32FC1);
+		CvMat *invK = cvCreateMat(3, 3, CV_32FC1);
+		cvInvert(K, invK);
+		CvMat *temp34 = cvCreateMat(3, 4, CV_32FC1);
+		CvMat *temp33 = cvCreateMat(3, 3, CV_32FC1);
+		CvMat *invR = cvCreateMat(3, 3, CV_32FC1);
+		CvMat *P = cvCreateMat(3, 4, CV_32FC1);
+
+		P = cvCloneMat(cP[i]);
+		cvMatMul(invK, P, temp34);
+		GetSubMatColwise(temp34, 0, 2, R);
+		GetSubMatColwise(temp34, 3, 3, t);
+		cvInvert(R, invR);
+		cvMatMul(invR, t, t);
+
+		fout << "0 " << frame << endl;
+		fout << -cvGetReal2D(t, 0, 0) << " " << -cvGetReal2D(t, 1, 0) << " " << -cvGetReal2D(t, 2, 0) << endl;
+		fout << cvGetReal2D(R, 0, 0) << " " << cvGetReal2D(R, 0, 1) << " " << cvGetReal2D(R, 0, 2) << endl;
+		fout << cvGetReal2D(R, 1, 0) << " " << cvGetReal2D(R, 1, 1) << " " << cvGetReal2D(R, 1, 2) << endl;
+		fout << cvGetReal2D(R, 2, 0) << " " << cvGetReal2D(R, 2, 1) << " " << cvGetReal2D(R, 2, 2) << endl;
+
+		cvReleaseMat(&R);
+		cvReleaseMat(&t);
+		cvReleaseMat(&invK);
+		cvReleaseMat(&temp33);
+		cvReleaseMat(&temp34);
+		cvReleaseMat(&invR);
+		cvReleaseMat(&P);
+	}
+
+	fout.close();
+}
+
 void SaveCameraData_DistortionK(string filename, vector<Camera> vCamera, vector<CvMat*> cK, vector<double> vk1, vector<int> vUsedFrame, int max_nFrames)
 {
 	PrintAlgorithm("Save Camera Data");
@@ -5282,6 +5383,32 @@ void LoadCalibrationData(vector<string> vFilename, vector<Camera> &vCamera)
 		vCamera[iFile].k2 = k2;
 		file.close();
 	}
+}
+
+void LoadCalibrationData(string filename, CvMat *K_data, double &omega)
+{
+	PrintAlgorithm("Load Calibration Data");
+	cout << "File name: " << filename << endl;
+	ifstream fin_cal;
+	fin_cal.open(filename.c_str(), ifstream::in);
+	string dummy;
+	int im_width, im_height;
+	double focal_x, focal_y, princ_x, princ_y;
+	double princ_x1, princ_y1;
+	fin_cal >> dummy >> im_width;
+	fin_cal >> dummy >> im_height;
+	fin_cal >> dummy >> focal_x;
+	fin_cal >> dummy >> focal_y;
+	fin_cal >> dummy >> princ_x;
+	fin_cal >> dummy >> princ_y;
+	fin_cal >> dummy >> omega;
+
+	cvSetIdentity(K_data);
+	cvSetReal2D(K_data, 0, 0, focal_x);
+	cvSetReal2D(K_data, 0, 2, princ_x);
+	cvSetReal2D(K_data, 1, 1, focal_y);
+	cvSetReal2D(K_data, 1, 2, princ_y);
+	fin_cal.close();
 }
 
 

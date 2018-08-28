@@ -396,6 +396,145 @@ void CeresSolverGoPro3(vector<Feature> &vFeature, vector<int> vUsedFrame, vector
  //   delete[] bal_problem.parameters_;
 }
 
+void CeresSolverGoPro(vector<Feature> &vFeature, vector<int> vUsedFrame, vector<CvMat *> &cP, CvMat *X, CvMat *K,
+	double omega)
+{
+	PrintAlgorithm("Ceres bundle adjustment");
+	vector<int> visibleStructureID;
+	for (int iFeature = 0; iFeature < vFeature.size(); iFeature++)
+	{
+		if (vFeature[iFeature].isRegistered)
+		{
+			visibleStructureID.push_back(vFeature[iFeature].id);
+		}
+	}
+
+	BALProblem bal_problem;
+	GetParameterForSBA_Distortion(vFeature, vUsedFrame, cP, X, K, visibleStructureID, bal_problem);
+
+	//const double* observations = bal_problem.observations();
+	double tan_omega_half_2 = 2 * tan(omega / 2);
+	// Create residuals for each observation in the bundle adjustment problem. The
+	// parameters for cameras and points are added automatically.
+	ceres::Problem problem;
+	double additionaldata[8];
+	additionaldata[0] = omega;
+	additionaldata[1] = tan_omega_half_2;
+	additionaldata[4] = cvGetReal2D(K, 0, 0);
+	additionaldata[5] = cvGetReal2D(K, 1, 1);
+	additionaldata[6] = cvGetReal2D(K, 0, 2);
+	additionaldata[7] = cvGetReal2D(K, 1, 2);
+
+	double error = 0;
+	double max_error = 0;
+	for (int i = 0; i < bal_problem.num_observations(); ++i)
+	{
+		// Each Residual block takes a point and a camera as input and outputs a 2
+		// dimensional residual. Internally, the cost function stores the observed
+		// image location and compares the reprojection against the observation.
+
+		ceres::CostFunction* cost_function =
+			SnavelyReprojectionError1::Create(bal_problem.observations_[2 * i + 0],
+			bal_problem.observations_[2 * i + 1],
+			omega,
+			cvGetReal2D(K, 0, 0), cvGetReal2D(K, 1, 1), cvGetReal2D(K, 0, 2), cvGetReal2D(K, 1, 2));
+		problem.AddResidualBlock(cost_function,
+			NULL /* squared loss */,
+			bal_problem.mutable_camera_for_observation(i),
+			bal_problem.mutable_point_for_observation(i));
+
+
+		double measurement[2];
+		measurement[0] = bal_problem.observations_[2 * i + 0];
+		measurement[1] = bal_problem.observations_[2 * i + 1];
+		double res[2];
+		Reprojection1(bal_problem.mutable_camera_for_observation(i),
+			bal_problem.mutable_point_for_observation(i),
+			additionaldata,
+			measurement, res);
+
+		error += sqrt(res[0] * res[0] + res[1] * res[1]);
+
+		if (max_error < sqrt(res[0] * res[0] + res[1] * res[1]))
+			max_error = sqrt(res[0] * res[0] + res[1] * res[1]);
+	}
+	error /= bal_problem.num_observations();
+
+	// Make Ceres automatically detect the bundle structure. Note that the
+	// standard solver, SPARSE_NORMAL_CHOLESKY, also works fine but it is slower
+	// for standard bundle adjustment problems.
+	ceres::Solver::Options options;
+	options.linear_solver_type = ceres::DENSE_SCHUR;
+	options.minimizer_progress_to_stdout = false;
+
+	ceres::Solver::Summary summary;
+	ceres::Solve(options, &problem, &summary);
+	std::cout << summary.BriefReport() << "\n";
+
+
+	double error_ba = 0;
+	for (int i = 0; i < bal_problem.num_observations(); ++i)
+	{
+		double measurement[2];
+		measurement[0] = bal_problem.observations_[2 * i + 0];
+		measurement[1] = bal_problem.observations_[2 * i + 1];
+		double res[2];
+		Reprojection1(bal_problem.mutable_camera_for_observation(i),
+			bal_problem.mutable_point_for_observation(i),
+			additionaldata,
+			measurement, res);
+
+		error_ba += sqrt(res[0] * res[0] + res[1] * res[1]);
+	}
+	error_ba /= bal_problem.num_observations();
+
+	cout << "Reprojection error: " << error << "(" << max_error << ")" << " ==> " << error_ba << endl;
+
+	// Retrieve data
+	for (int i = 0; i < cP.size(); i++)
+	{
+		cvReleaseMat(&cP[i]);
+	}
+	cP.clear();
+	for (int iFrame = 0; iFrame < vUsedFrame.size(); iFrame++)
+	{
+		CvMat *q = cvCreateMat(4, 1, CV_32FC1);
+		CvMat *C = cvCreateMat(3, 1, CV_32FC1);
+		cvSetReal2D(q, 0, 0, bal_problem.parameters_[7 * iFrame]);
+		cvSetReal2D(q, 1, 0, bal_problem.parameters_[7 * iFrame + 1]);
+		cvSetReal2D(q, 2, 0, bal_problem.parameters_[7 * iFrame + 2]);
+		cvSetReal2D(q, 3, 0, bal_problem.parameters_[7 * iFrame + 3]);
+		cvSetReal2D(C, 0, 0, bal_problem.parameters_[7 * iFrame + 4]);
+		cvSetReal2D(C, 1, 0, bal_problem.parameters_[7 * iFrame + 5]);
+		cvSetReal2D(C, 2, 0, bal_problem.parameters_[7 * iFrame + 6]);
+		CvMat *R = cvCreateMat(3, 3, CV_32FC1);
+		Quaternion2Rotation(q, R);
+		CvMat *P = cvCreateMat(3, 4, CV_32FC1);
+		CreateCameraMatrix1(R, C, K, P);
+		cP.push_back(P);
+
+		cvReleaseMat(&q);
+		cvReleaseMat(&C);
+		cvReleaseMat(&R);
+	}
+
+	CvMat *X_ = cvCreateMat(visibleStructureID.size(), 3, CV_32FC1);
+
+	for (int iFeature = 0; iFeature < visibleStructureID.size(); iFeature++)
+	{
+		cvSetReal2D(X_, iFeature, 0, bal_problem.parameters_[7 * cP.size() + 3 * iFeature]);
+		cvSetReal2D(X_, iFeature, 1, bal_problem.parameters_[7 * cP.size() + 3 * iFeature + 1]);
+		cvSetReal2D(X_, iFeature, 2, bal_problem.parameters_[7 * cP.size() + 3 * iFeature + 2]);
+	}
+	SetIndexedMatRowwise(X, visibleStructureID, X_);
+	cvReleaseMat(&X_);
+
+	//delete[] bal_problem.point_index_;
+	//   delete[] bal_problem.camera_index_;
+	//   delete[] bal_problem.observations_;
+	//   delete[] bal_problem.parameters_;
+}
+
 void CeresSolverGoPro2(vector<Feature> &vFeature, vector<int> vUsedFrame, vector<CvMat *> &cP, CvMat *X, vector<Camera> vCamera,
 	double omega)
 {

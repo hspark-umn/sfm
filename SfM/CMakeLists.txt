@@ -15,6 +15,7 @@ add_executable( SfM SfM.cpp
 		DataUtility.cpp
 		epnp.cpp
 		MathUtility.cpp
+		MultiviewUtility.cpp
 		)
 target_link_libraries( SfM -lboost_system
 	${OpenCV_LIBS}

@@ -14,6 +14,10 @@
 #define FEATURE_PROPERTY_STATIC 1
 
 using namespace std;
+void LoadCalibrationData(string filename, CvMat *K_data, double &omega);
+void LoadCorrespondenceData(string filename, vector<Feature> &vFeature);
+void SaveCameraData(string filename, vector<CvMat*> cP, CvMat *K, vector<int> vUsedFrame);
+
 void SaveVector(string filename, vector<double> v);
 void SaveFaceReconstructionData(string filename, vector<vector<FaceReconstruction> > vvFaceReconstruction);
 void LoadFaceRefinedMeasurementData(string filename, vector<vector<FaceReconstruction> > &vvFaceReconstruction);

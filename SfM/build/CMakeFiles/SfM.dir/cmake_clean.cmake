@@ -4,6 +4,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/SfM.dir/DataUtility.cpp.o"
   "CMakeFiles/SfM.dir/epnp.cpp.o"
   "CMakeFiles/SfM.dir/MathUtility.cpp.o"
+  "CMakeFiles/SfM.dir/MultiviewUtility.cpp.o"
   "SfM.pdb"
   "SfM"
 )

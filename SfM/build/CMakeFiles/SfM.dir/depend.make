@@ -259,9 +259,18 @@ CMakeFiles/SfM.dir/MathUtility.cpp.o: ../StructDefinition.h
 CMakeFiles/SfM.dir/MathUtility.cpp.o: /usr/include/opencv/cv.h
 CMakeFiles/SfM.dir/MathUtility.cpp.o: /usr/include/opencv/cxcore.h
 
+CMakeFiles/SfM.dir/MultiviewUtility.cpp.o: ../MathUtility.h
+CMakeFiles/SfM.dir/MultiviewUtility.cpp.o: ../MultiviewUtility.cpp
+CMakeFiles/SfM.dir/MultiviewUtility.cpp.o: ../MultiviewUtility.h
+CMakeFiles/SfM.dir/MultiviewUtility.cpp.o: ../StructDefinition.h
+CMakeFiles/SfM.dir/MultiviewUtility.cpp.o: ../epnp.h
+CMakeFiles/SfM.dir/MultiviewUtility.cpp.o: /usr/include/opencv/cv.h
+CMakeFiles/SfM.dir/MultiviewUtility.cpp.o: /usr/include/opencv/cxcore.h
+
 CMakeFiles/SfM.dir/SfM.cpp.o: ../CeresUtility.h
 CMakeFiles/SfM.dir/SfM.cpp.o: ../DataUtility.h
 CMakeFiles/SfM.dir/SfM.cpp.o: ../MathUtility.h
+CMakeFiles/SfM.dir/SfM.cpp.o: ../MultiviewUtility.h
 CMakeFiles/SfM.dir/SfM.cpp.o: ../SfM.cpp
 CMakeFiles/SfM.dir/SfM.cpp.o: ../StructDefinition.h
 CMakeFiles/SfM.dir/SfM.cpp.o: ../epnp.h
